@@ -70,15 +70,15 @@ server.on('request', function(req, res) {
                 res.statusCode = 200;
                 res.statusMessage = 'OK';
                 res.end(body);
-	    } else if(path.match(/^\/(id)\/\d$/)) {
+            } else if(path.match(/^\/(id)\/\d$/)) {
 		var id = path[4];
-		var body = JSON.stringify(items[id]['data'], null, '\t');
-		body += '\n';
-		res.setHeader('Content-Length', Buffer.byteLength(body));
-		res.setHeader('Content-Type', 'application/json; charset=utf8');
-		res.statusCode = 200;
-		res.statusMessage = 'OK';
-		res.end(body);
+                var body = JSON.stringify(items[id]['data'], null, '\t');
+                body += '\n';
+                res.setHeader('Content-Length', Buffer.byteLength(body));
+                res.setHeader('Content-Type', 'application/json; charset=utf8');
+                res.statusCode = 200;
+                res.statusMessage = 'OK';
+                res.end(body);
 	    } else {
                 res.statusCode = 400;
                 res.statusMessage = 'Bad Request';
@@ -105,7 +105,6 @@ server.on('request', function(req, res) {
                         res.end('Bad Request');
                     }
                     if('data' in item){
-			console.log(item);
                         item.id = items.length;
                         items.push(item);
                         var body = JSON.stringify(item, null, '\t');
