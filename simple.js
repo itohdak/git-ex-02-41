@@ -145,7 +145,7 @@ server.on('request', function(req, res) {
                         res.statusMessage = e.message;
                         res.end('Bad Request');
                     }
-                    if('data' in item){
+                    if('data' in item && path[4] < items.length){
 			var id = path[4];
                         items[id]['data'] = item['data'];
                         var body = JSON.stringify(items[id]['data'], null, '\t');
