@@ -125,6 +125,39 @@ server.on('request', function(req, res) {
                 res.end('Bad Request');
             }
             break;
+        case 'DELETE':
+	    if(path.match(/^\/(id)\/\d$/)) {
+		var id = path[4];
+		var target
+		    = function(id) {
+			var ret = -1;
+			for(var i=0; i<items.length; i++) {
+			    if(items[i]["id"] == id) {
+				ret = i;
+				break;
+			    }
+			}
+			return ret;}(id);
+		if(target != -1) {
+                    var body = JSON.stringify(items[target], null, '\t');
+                    body += '\ndeleted\n';
+                    res.setHeader('Content-Length', Buffer.byteLength(body));
+                    res.setHeader('Content-Type', 'application/json; charset=utf8');
+                    res.statusCode = 200;
+                    res.statusMessage = 'OK';
+                    res.end(body);
+		    items.splice(target, 1);
+		} else {
+		    var body = JSON.stringify('', null, '\t');
+		    body += '\nnot found\n';
+                    res.setHeader('Content-Length', Buffer.byteLength(body));
+                    res.setHeader('Content-Type', 'application/json; charset=utf8');
+                    res.statusCode = 404;
+                    res.statusMessage = 'Not Found';
+                    res.end(body);
+		}
+	    }
+	    break;
         default:
             res.statusCode = 400;
             res.statusMessage = ('Bad Request');
