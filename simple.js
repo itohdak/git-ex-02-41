@@ -55,6 +55,15 @@ var items = [
 
 const server = http.createServer();
 
+var search = function(id) {
+    for (var i = 0; i < items.length; i++) {
+	if (items[i].id == id) {
+	    return true;
+	}
+    }
+    return false;
+}
+
 server.on('request', function(req, res) {
     var path = url.parse(req.url).pathname;
     req.setEncoding('utf8');
@@ -82,7 +91,7 @@ server.on('request', function(req, res) {
 	    } else {
                 res.statusCode = 400;
                 res.statusMessage = 'Bad Request';
-                res.end('Bad Request');
+                res.end('Bad Request\n');
             }
             break;
         case 'POST':
@@ -102,7 +111,7 @@ server.on('request', function(req, res) {
                     } catch(e) {
                         res.statusCode = 400;
                         res.statusMessage = e.message;
-                        res.end('Bad Request');
+                        res.end('Bad Request\n');
                     }
                     if('data' in item){
                         item.id = items.length;
@@ -116,15 +125,64 @@ server.on('request', function(req, res) {
                     }else{
                         res.statusCode = 400;
                         res.statusMessage = ('Bad Request');
-                        res.end('Bad Request');
+                        res.end('Bad Request\n');
                     }
                 });
             } else {
                 res.statusCode = 400;
                 res.statusMessage = ('Bad Request');
-                res.end('Bad Request');
+                res.end('Bad Request\n');
             }
             break;
+        case 'PUT':
+	    if(path.match(/^\/(id)\/\d$/)) {
+		// $ curl -i -v --data '{"data":"testdata"}' -X PUT http://127.0.0.1:3000/id/:number
+		var item;
+		var data = '';
+		req.on('data', function(chunk){
+                    data += chunk;
+                });
+		req.on('end', function(){
+                    try {
+                        item = JSON.parse(data, function(key, value) {
+			    if(key === '' ) return value;
+			    if(key === 'data') return value;
+			});
+                    } catch(e) {
+                        res.statusCode = 400;
+                        res.statusMessage = e.message;
+                        res.end('Bad Request\n');
+                    }
+                    if('data' in item){
+			if (!search(path[4])) {
+			    res.statusCode = 404;
+			    res.statusMessage = ('Not Found');
+			    res.end('Not Found\n');
+			}
+			else {
+			    var id = path[4];
+                            items[id]['data'] = item['data'];
+                            var body = JSON.stringify(items[id]['data'], null, '\t');
+			    body += '\n';
+                            res.setHeader('Content-Length', Buffer.byteLength(body));
+                            res.setHeader('Content-Type', 'application/json; charset=utf8');
+                            res.statusCode = 200;
+                            res.statusMessage = 'OK';
+                            res.end(body);
+			}
+                    }
+		    else {
+                        res.statusCode = 400;
+                        res.statusMessage = ('Bad Request');
+                        res.end('Bad Request\n');
+                    }
+                });
+	    } else {
+		res.statusCode = 400;
+		res.statusMessage = ('Bad Request');
+		res.end('Bad Request\n');
+	    }
+	    break;
         case 'DELETE':
 	    if(path.match(/^\/(id)\/\d$/)) {
 		var id = path[4];
@@ -161,7 +219,7 @@ server.on('request', function(req, res) {
         default:
             res.statusCode = 400;
             res.statusMessage = ('Bad Request');
-            res.end('Bad Request');
+            res.end('Bad Request\n');
             break;
     }
 });
