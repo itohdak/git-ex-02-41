@@ -189,7 +189,7 @@ server.on('request', function(req, res) {
 	    break;
         case 'DELETE':
 	    if(path.match(/^\/(id)\/\d$/)) {
-            // $ curl -i -X DELETE http://127.0.0.1:3000/id/:number
+	    // $ curl -i -X DELETE http://127.0.0.1:3000/id/:number
 		var id = path[4];
 		var target = search(id);
 		if(target != -1) {
