@@ -55,14 +55,6 @@ var items = [
 
 const server = http.createServer();
 
-// var search = function(id) {
-//     for (var i = 0; i < items.length; i++) {
-// 	if (items[i].id == id) {
-// 	    return true;
-// 	}
-//     }
-//     return false;
-// }
 var search = function(id) {
     var ret = -1;
     for(var i = 0; i < items.length; i++) {
@@ -172,7 +164,6 @@ server.on('request', function(req, res) {
 			    res.end('Not Found\n');
 			}
 			else {
-			    // var id = path[4];
                             items[target]['data'] = item['data'];
                             var body = JSON.stringify(items[target]['data'], null, '\t');
 			    body += '\n';
