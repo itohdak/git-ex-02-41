@@ -55,6 +55,17 @@ var items = [
 
 const server = http.createServer();
 
+var search = function(id) {
+    var ret = -1;
+    for(var i = 0; i < items.length; i++) {
+	if(items[i]["id"] == id) {
+	    ret = i;
+	    break;
+	}
+    }
+    return ret;
+}
+
 server.on('request', function(req, res) {
     var path = url.parse(req.url).pathname;
     req.setEncoding('utf8');
@@ -82,7 +93,7 @@ server.on('request', function(req, res) {
 	    } else {
                 res.statusCode = 400;
                 res.statusMessage = 'Bad Request';
-                res.end('Bad Request');
+                res.end('Bad Request\n');
             }
             break;
         case 'POST':
@@ -102,7 +113,7 @@ server.on('request', function(req, res) {
                     } catch(e) {
                         res.statusCode = 400;
                         res.statusMessage = e.message;
-                        res.end('Bad Request');
+                        res.end('Bad Request\n');
                     }
                     if('data' in item){
                         item.id = items.length;
@@ -116,13 +127,13 @@ server.on('request', function(req, res) {
                     }else{
                         res.statusCode = 400;
                         res.statusMessage = ('Bad Request');
-                        res.end('Bad Request');
+                        res.end('Bad Request\n');
                     }
                 });
             } else {
                 res.statusCode = 400;
                 res.statusMessage = ('Bad Request');
-                res.end('Bad Request');
+                res.end('Bad Request\n');
             }
             break;
         case 'PUT':
@@ -138,41 +149,71 @@ server.on('request', function(req, res) {
                         item = JSON.parse(data, function(key, value) {
 			    if(key === '' ) return value;
 			    if(key === 'data') return value;
-			   
 			});
                     } catch(e) {
                         res.statusCode = 400;
                         res.statusMessage = e.message;
-                        res.end('Bad Request');
+                        res.end('Bad Request\n');
                     }
-                    if('data' in item && path[4] < items.length){
+                    if('data' in item){
 			var id = path[4];
-                        items[id]['data'] = item['data'];
-                        var body = JSON.stringify(items[id]['data'], null, '\t');
-			body += '\n';
-                        res.setHeader('Content-Length', Buffer.byteLength(body));
-                        res.setHeader('Content-Type', 'application/json; charset=utf8');
-                        res.statusCode = 200;
-                        res.statusMessage = 'OK';
-                        res.end(body);
+			var target = search(id);
+			if (target == -1) {
+			    res.statusCode = 404;
+			    res.statusMessage = ('Not Found');
+			    res.end('Not Found\n');
+			}
+			else {
+                            items[target]['data'] = item['data'];
+                            var body = JSON.stringify(items[target]['data'], null, '\t');
+			    body += '\n';
+                            res.setHeader('Content-Length', Buffer.byteLength(body));
+                            res.setHeader('Content-Type', 'application/json; charset=utf8');
+                            res.statusCode = 200;
+                            res.statusMessage = 'OK';
+                            res.end(body);
+			}
                     }
 		    else {
                         res.statusCode = 400;
                         res.statusMessage = ('Bad Request');
-                        res.end('Bad Request');
+                        res.end('Bad Request\n');
                     }
                 });
-	} else {
-	    res.statusCode = 400;
-	    res.statusMessage = ('Bad Request');
-	    res.end('Bad Request');
-	}
-	break;
-
+	    } else {
+		res.statusCode = 400;
+		res.statusMessage = ('Bad Request');
+		res.end('Bad Request\n');
+	    }
+	    break;
+        case 'DELETE':
+	    if(path.match(/^\/(id)\/\d$/)) {
+		var id = path[4];
+		var target = search(id);
+		if(target != -1) {
+                    var body = JSON.stringify(items[target], null, '\t');
+                    body += '\ndeleted\n';
+                    res.setHeader('Content-Length', Buffer.byteLength(body));
+                    res.setHeader('Content-Type', 'application/json; charset=utf8');
+                    res.statusCode = 200;
+                    res.statusMessage = 'OK';
+                    res.end(body);
+		    items.splice(target, 1);
+		} else {
+		    var body = JSON.stringify('', null, '\t');
+		    body += '\nnot found\n';
+                    res.setHeader('Content-Length', Buffer.byteLength(body));
+                    res.setHeader('Content-Type', 'application/json; charset=utf8');
+                    res.statusCode = 404;
+                    res.statusMessage = 'Not Found';
+                    res.end(body);
+		}
+	    }
+	    break;
         default:
             res.statusCode = 400;
             res.statusMessage = ('Bad Request');
-            res.end('Bad Request');
+            res.end('Bad Request\n');
             break;
     }
 });
