@@ -81,16 +81,23 @@ server.on('request', function(req, res) {
                 res.statusCode = 200;
                 res.statusMessage = 'OK';
                 res.end(body);
-            } else if(path.match(/^\/(id)\/\d$/)) {
+            } else if(path.match(/^\/(id)\/\d+$/)) {
             // $ curl -i -X GET http://127.0.0.1:3000/id/:number
-		var id = path[4];
-                var body = JSON.stringify(items[id]['data'], null, '\t');
-                body += '\n';
-                res.setHeader('Content-Length', Buffer.byteLength(body));
-                res.setHeader('Content-Type', 'application/json; charset=utf8');
-                res.statusCode = 200;
-                res.statusMessage = 'OK';
-                res.end(body);
+		var id = path.substring(4, path.length);
+		var target = search(id);
+		if(target == -1) {
+		    res.statusCode = 404;
+		    res.statusMessage = ('Not Found');
+		    res.end('Not Found\n');
+		} else {
+                    var body = JSON.stringify(items[target]['data'], null, '\t');
+                    body += '\n';
+                    res.setHeader('Content-Length', Buffer.byteLength(body));
+                    res.setHeader('Content-Type', 'application/json; charset=utf8');
+                    res.statusCode = 200;
+                    res.statusMessage = 'OK';
+                    res.end(body);
+		}
 	    } else {
                 res.statusCode = 400;
                 res.statusMessage = 'Bad Request';
@@ -138,7 +145,7 @@ server.on('request', function(req, res) {
             }
             break;
         case 'PUT':
-	    if(path.match(/^\/(id)\/\d$/)) {
+	    if(path.match(/^\/(id)\/\d+$/)) {
 	    // $ curl -i -v --data '{"data":"testdata"}' -X PUT http://127.0.0.1:3000/id/:number
 		var item;
 		var data = '';
@@ -157,14 +164,13 @@ server.on('request', function(req, res) {
                         res.end('Bad Request\n');
                     }
                     if('data' in item){
-			var id = path[4];
+			var id = path.substring(4, path.length);
 			var target = search(id);
 			if (target == -1) {
 			    res.statusCode = 404;
 			    res.statusMessage = ('Not Found');
 			    res.end('Not Found\n');
-			}
-			else {
+			} else {
                             items[target]['data'] = item['data'];
                             var body = JSON.stringify(items[target]['data'], null, '\t');
 			    body += '\n';
@@ -174,8 +180,7 @@ server.on('request', function(req, res) {
                             res.statusMessage = 'OK';
                             res.end(body);
 			}
-                    }
-		    else {
+                    } else {
                         res.statusCode = 400;
                         res.statusMessage = ('Bad Request');
                         res.end('Bad Request\n');
@@ -188,9 +193,9 @@ server.on('request', function(req, res) {
 	    }
 	    break;
         case 'DELETE':
-	    if(path.match(/^\/(id)\/\d$/)) {
+	    if(path.match(/^\/(id)\/\d+$/)) {
 	    // $ curl -i -X DELETE http://127.0.0.1:3000/id/:number
-		var id = path[4];
+		var id = path.substring(4, path.length);
 		var target = search(id);
 		if(target != -1) {
                     var body = JSON.stringify(items[target], null, '\t');
@@ -210,6 +215,10 @@ server.on('request', function(req, res) {
                     res.statusMessage = 'Not Found';
                     res.end(body);
 		}
+	    } else {
+		res.statusCode = 400;
+		res.statusMessage = ('Bad Request');
+		res.end('Bad Request\n');
 	    }
 	    break;
         default:
