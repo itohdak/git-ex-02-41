@@ -72,7 +72,7 @@ var next_id_to_post = function() {
     if(deleted_ids.length == 0) {
 	return next_id++;
     } else {
-	return deleted_ids.shift();
+	return parseInt(deleted_ids.shift());
     }
 }
 
