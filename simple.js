@@ -66,6 +66,16 @@ var search = function(id) {
     return ret;
 }
 
+var deleted_ids = [];
+var next_id = 4;
+var next_id_to_post = function() {
+    if(deleted_ids.length == 0) {
+	return next_id++;
+    } else {
+	return deleted_ids.shift();
+    }
+}
+
 server.on('request', function(req, res) {
     var path = url.parse(req.url).pathname;
     req.setEncoding('utf8');
@@ -124,7 +134,8 @@ server.on('request', function(req, res) {
                         res.end('Bad Request\n');
                     }
                     if('data' in item){
-                        item.id = items.length;
+                        // item.id = items.length;
+                        item.id = next_id_to_post();
                         items.push(item);
                         var body = JSON.stringify(item, null, '\t');
                         res.setHeader('Content-Length', Buffer.byteLength(body));
@@ -206,6 +217,8 @@ server.on('request', function(req, res) {
                     res.statusMessage = 'OK';
                     res.end(body);
 		    items.splice(target, 1);
+		    deleted_ids.push(id);
+		    deleted_ids.sort();
 		} else {
 		    var body = JSON.stringify('', null, '\t');
 		    body += '\nnot found\n';
